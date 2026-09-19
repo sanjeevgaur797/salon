@@ -2,12 +2,17 @@ const Attendance = require('../models/Attendance');
 const Salon = require('../models/Salon');
 const Staff = require('../models/Staff');
 const { calculateDistanceMeters } = require('../utils/haversine');
+const { memoryStore, isMemoryMode } = require('../config/memoryStore');
 
 exports.checkIn = async (req, res) => {
   try {
     const salonId = req.user.salonId;
     if (!salonId) {
       return res.status(400).json({ error: 'MISSING_SALON', message: 'User is not linked to any salon' });
+    }
+
+    if (isMemoryMode()) {
+      return memoryStore.checkIn(req, res);
     }
 
     const { latitude, longitude } = req.body;
@@ -91,6 +96,10 @@ exports.getTodayStatus = async (req, res) => {
       return res.status(400).json({ error: 'MISSING_SALON', message: 'User is not linked to any salon' });
     }
 
+    if (isMemoryMode()) {
+      return memoryStore.getTodayStatus(req, res);
+    }
+
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
@@ -116,6 +125,10 @@ exports.getTodayStatus = async (req, res) => {
 exports.getAttendanceList = async (req, res) => {
   try {
     const salonId = req.user.salonId;
+
+    if (isMemoryMode()) {
+      return memoryStore.getAttendanceList(req, res);
+    }
     const records = await Attendance.find({ salonId })
       .populate('userId', 'name email role')
       .populate('staffId', 'name specialization')

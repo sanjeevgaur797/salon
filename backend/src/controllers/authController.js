@@ -3,12 +3,17 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Salon = require('../models/Salon');
 const { JWT_SECRET } = require('../middleware/authMiddleware');
+const { memoryStore, isMemoryMode } = require('../config/memoryStore');
 
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ error: 'INVALID_INPUT', message: 'Email and password are required' });
+    }
+
+    if (isMemoryMode()) {
+      return memoryStore.login(req, res);
     }
 
     const user = await User.findOne({ email: email.toLowerCase() });
@@ -52,6 +57,10 @@ exports.login = async (req, res) => {
 
 exports.getMe = async (req, res) => {
   try {
+    if (isMemoryMode()) {
+      return memoryStore.getMe(req, res);
+    }
+
     const user = await User.findById(req.user.id).select('-password');
     let salon = null;
     if (user.salonId) {

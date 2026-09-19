@@ -4,12 +4,17 @@ const Service = require('../models/Service');
 const Client = require('../models/Client');
 const Salon = require('../models/Salon');
 const { isWithinWorkingHours, isOverlapping, timeToMinutes } = require('../utils/timeUtils');
+const { memoryStore, isMemoryMode } = require('../config/memoryStore');
 
 exports.createAppointment = async (req, res) => {
   try {
     const salonId = req.user.salonId;
     if (!salonId) {
       return res.status(400).json({ error: 'MISSING_SALON', message: 'Tenant isolation requirement: User must belong to a salon' });
+    }
+
+    if (isMemoryMode()) {
+      return memoryStore.createAppointment(req, res);
     }
 
     const { client, service, staff, date, startTime, endTime, notes } = req.body;
@@ -132,6 +137,10 @@ exports.getAppointments = async (req, res) => {
       return res.status(400).json({ error: 'MISSING_SALON', message: 'User is not linked to any salon' });
     }
 
+    if (isMemoryMode()) {
+      return memoryStore.getAppointments(req, res);
+    }
+
     const { date, status, staffId } = req.query;
 
     // Strict tenant isolation
@@ -157,6 +166,10 @@ exports.updateAppointmentStatus = async (req, res) => {
     const salonId = req.user.salonId;
     const { id } = req.params;
     const { status } = req.body;
+
+    if (isMemoryMode()) {
+      return memoryStore.updateAppointmentStatus(req, res);
+    }
 
     if (!['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED'].includes(status)) {
       return res.status(400).json({ error: 'INVALID_INPUT', message: 'Invalid appointment status' });

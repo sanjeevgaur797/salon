@@ -1,7 +1,11 @@
 const SubscriptionHistory = require('../models/SubscriptionHistory');
+const { memoryStore, isMemoryMode } = require('../config/memoryStore');
 
 exports.getAllHistory = async (req, res) => {
   try {
+    if (isMemoryMode()) {
+      return memoryStore.getAllHistory(req, res);
+    }
     const { salonId } = req.query;
     const filter = {};
     if (salonId) {

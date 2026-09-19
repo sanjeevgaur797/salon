@@ -3,9 +3,13 @@ const Plan = require('../models/Plan');
 const User = require('../models/User');
 const SubscriptionHistory = require('../models/SubscriptionHistory');
 const bcrypt = require('bcryptjs');
+const { memoryStore, isMemoryMode } = require('../config/memoryStore');
 
 exports.getSalons = async (req, res) => {
   try {
+    if (isMemoryMode()) {
+      return memoryStore.getSalons(req, res);
+    }
     const salons = await Salon.find().populate('currentPlan').sort({ createdAt: -1 });
     return res.json({ salons });
   } catch (err) {
@@ -15,6 +19,9 @@ exports.getSalons = async (req, res) => {
 
 exports.createSalon = async (req, res) => {
   try {
+    if (isMemoryMode()) {
+      return memoryStore.createSalon(req, res);
+    }
     const { name, address, latitude, longitude, allowedRadius, ownerName, ownerEmail, ownerPassword } = req.body;
 
     if (!name || latitude === undefined || longitude === undefined) {
@@ -59,6 +66,9 @@ exports.createSalon = async (req, res) => {
 
 exports.assignOrRenewPlan = async (req, res) => {
   try {
+    if (isMemoryMode()) {
+      return memoryStore.assignOrRenewPlan(req, res);
+    }
     const { salonId } = req.params;
     const { planId, action } = req.body; // action: ASSIGN | RENEW | UPGRADE
 
@@ -113,6 +123,9 @@ exports.assignOrRenewPlan = async (req, res) => {
 
 exports.getSubscriptionStatus = async (req, res) => {
   try {
+    if (isMemoryMode()) {
+      return memoryStore.getSubscriptionStatus(req, res);
+    }
     // Isolated to tenant from token
     const salonId = req.user.salonId;
     if (!salonId) {
@@ -146,6 +159,9 @@ exports.getSubscriptionStatus = async (req, res) => {
 
 exports.updateSalonConfig = async (req, res) => {
   try {
+    if (isMemoryMode()) {
+      return memoryStore.updateSalonConfig(req, res);
+    }
     const salonId = req.user.salonId;
     const { name, address, latitude, longitude, allowedRadius } = req.body;
 

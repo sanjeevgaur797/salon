@@ -1,7 +1,11 @@
 const Plan = require('../models/Plan');
+const { memoryStore, isMemoryMode } = require('../config/memoryStore');
 
 exports.createPlan = async (req, res) => {
   try {
+    if (isMemoryMode()) {
+      return memoryStore.createPlan(req, res);
+    }
     const { name, price, durationInDays, maxStaff, maxAppointments } = req.body;
 
     if (!name || price === undefined || !durationInDays || !maxStaff || !maxAppointments) {
@@ -26,6 +30,9 @@ exports.createPlan = async (req, res) => {
 
 exports.getPlans = async (req, res) => {
   try {
+    if (isMemoryMode()) {
+      return memoryStore.getPlans(req, res);
+    }
     const plans = await Plan.find().sort({ createdAt: -1 });
     return res.json({ plans });
   } catch (err) {
@@ -35,6 +42,9 @@ exports.getPlans = async (req, res) => {
 
 exports.updatePlan = async (req, res) => {
   try {
+    if (isMemoryMode()) {
+      return memoryStore.updatePlan(req, res);
+    }
     const { id } = req.params;
     const { name, price, durationInDays, maxStaff, maxAppointments } = req.body;
 

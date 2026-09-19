@@ -1,10 +1,15 @@
 const Client = require('../models/Client');
+const { memoryStore, isMemoryMode } = require('../config/memoryStore');
 
 exports.getClients = async (req, res) => {
   try {
     const salonId = req.user.salonId;
     if (!salonId) {
       return res.status(400).json({ error: 'MISSING_SALON', message: 'User is not associated with a salon' });
+    }
+
+    if (isMemoryMode()) {
+      return memoryStore.getClients(req, res);
     }
 
     const clients = await Client.find({ salonId }).sort({ createdAt: -1 });
@@ -19,6 +24,10 @@ exports.createClient = async (req, res) => {
     const salonId = req.user.salonId;
     if (!salonId) {
       return res.status(400).json({ error: 'MISSING_SALON', message: 'User is not associated with a salon' });
+    }
+
+    if (isMemoryMode()) {
+      return memoryStore.createClient(req, res);
     }
 
     const { name, email, phone, notes } = req.body;

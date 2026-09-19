@@ -4,12 +4,17 @@ const Client = require('../models/Client');
 const Attendance = require('../models/Attendance');
 const Staff = require('../models/Staff');
 const Service = require('../models/Service');
+const { memoryStore, isMemoryMode } = require('../config/memoryStore');
 
 exports.getDashboardStats = async (req, res) => {
   try {
     const salonId = req.user.salonId;
     if (!salonId) {
       return res.status(400).json({ error: 'MISSING_SALON', message: 'User is not linked to any salon' });
+    }
+
+    if (isMemoryMode()) {
+      return memoryStore.getDashboardStats(req, res);
     }
 
     const todayStr = new Date().toISOString().split('T')[0];

@@ -16,33 +16,48 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/plans', planRoutes);
-app.use('/api/salons', salonRoutes);
-app.use('/api/subscriptions', subscriptionRoutes);
-app.use('/api/appointments', appointmentRoutes);
-app.use('/api/clients', clientRoutes);
-app.use('/api/attendance', attendanceRoutes);
-app.use('/api/dashboard', dashboardRoutes);
+const mongoose = require('mongoose');
+
+// Dual mounting ensures 100% routing match whether accessed directly, rewritten by Vercel, or proxied
+const mountRoutes = (prefix) => {
+  app.use(`${prefix}/auth`, authRoutes);
+  app.use(`${prefix}/plans`, planRoutes);
+  app.use(`${prefix}/salons`, salonRoutes);
+  app.use(`${prefix}/subscriptions`, subscriptionRoutes);
+  app.use(`${prefix}/appointments`, appointmentRoutes);
+  app.use(`${prefix}/clients`, clientRoutes);
+  app.use(`${prefix}/attendance`, attendanceRoutes);
+  app.use(`${prefix}/dashboard`, dashboardRoutes);
+};
+
+mountRoutes('/api');
+mountRoutes('');
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+const healthHandler = (req, res) => {
   res.json({
     status: 'OK',
     environment: process.env.VERCEL ? 'vercel-serverless' : 'node-server',
+    database: mongoose.connection.readyState === 1 ? 'mongodb-connected' : 'in-memory-demo-mode',
     timestamp: new Date().toISOString()
   });
-});
+};
+
+app.get('/api/health', healthHandler);
+app.get('/health', healthHandler);
 
 // Root API welcome
-app.get('/api', (req, res) => {
+const rootHandler = (req, res) => {
   res.json({
     name: 'Salon CRM API',
     version: '1.0.0',
-    status: 'online'
+    status: 'online',
+    database: mongoose.connection.readyState === 1 ? 'mongodb-connected' : 'in-memory-demo-mode'
   });
-});
+};
+
+app.get('/api', rootHandler);
+app.get('/', rootHandler);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = process.env.LIVE_API_URL || process.env.BASE_URL || 'http://localhost:5000/api';
 
 const runTests = async () => {
   console.log('🧪 Starting Full Automated API Test Suite...\n');
